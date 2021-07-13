@@ -28,15 +28,25 @@ android {
         minSdkVersion 17
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+//	sourceSets {
+//        main {
+//              //  jniLibs.srcDirs = ['libs']
+//        }
+//    }
     lintOptions {
         disable 'InvalidPackage'
     }
 }
 
 dependencies {
-    implementation 'cn.jiguang.sdk:jpush-google:3.9.0'
-    implementation 'cn.jiguang.sdk:jcore-google:2.6.0'
+   // implementation fileTree(include: ['jcore-android-2.8.2-google_play.jar','jpush-android-3.7.0-google_play.jar'], dir: 'libs')
+   // implementation 'cn.jiguang.sdk:jpush-google:3.9.0'
+   // implementation 'cn.jiguang.sdk:jcore-google:2.6.0'
+   implementation 'cn.jiguang.sdk:jpush-google:3.7.0'
+    implementation 'cn.jiguang.sdk:jcore-google:2.8.2'
 //    implementation 'com.android.support:appcompat-v7:28.+'
+//    implementation(name:'jcore-android-2.8.2-google_play', ext:'jar')
+//    implementation(name:'jcore-android-2.8.2-google_play', ext:'jar')
     compileOnly files('libs/flutter.jar')
 
 }
