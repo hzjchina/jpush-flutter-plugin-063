@@ -1,14 +1,20 @@
 package com.jiguang.jpush;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.core.app.ActivityCompat;
+
 import org.json.JSONObject;
 
+import cn.jiguang.api.JCoreInterface;
 import cn.jpush.android.data.JPushLocalNotification;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -29,7 +35,7 @@ import cn.jpush.android.api.JPushInterface;
 import io.flutter.view.FlutterNativeView;
 
 /** JPushPlugin */
-public class JPushPlugin implements MethodCallHandler {
+public class JPushPlugin implements MethodCallHandler, PluginRegistry.RequestPermissionsResultListener {
 
     /** Plugin registration. */
     public static void registerWith(Registrar registrar) {
@@ -133,8 +139,20 @@ public class JPushPlugin implements MethodCallHandler {
             }
         });
     }
-
+    private static final int REQUEST_POST_NOTIFICATIONS = 78456;
+    private MethodCall pendingCall;
+    private Result pendingResult;
     public void setup(MethodCall call, Result result) {
+
+        if((Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)){
+
+            ActivityCompat.requestPermissions(registrar.activity(), new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    REQUEST_POST_NOTIFICATIONS);
+            pendingCall = call;
+            pendingResult = result;
+            return;
+        }
+
         Log.d(TAG,"setup :" + call.arguments);
 
         HashMap<String, Object> map = call.arguments();
@@ -142,6 +160,7 @@ public class JPushPlugin implements MethodCallHandler {
         JPushInterface.setDebugMode(debug);
 
         JPushInterface.init(registrar.context());     		// 初始化 JPush
+       // JCoreInterface.testCountryCode("us");
         
         String channel = (String)map.get("channel");
         JPushInterface.setChannel(registrar.context(), channel);
@@ -354,6 +373,24 @@ public class JPushPlugin implements MethodCallHandler {
 
         JPushInterface.goToAppNotificationSettings(registrar.context());
 
+    }
+
+    @Override
+    public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == REQUEST_POST_NOTIFICATIONS) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+               //TODO 获取
+                setup(pendingCall,pendingResult);
+            } else {
+                //TODO
+                pendingResult.error(
+                        "no_permissions", "POST_NOTIFICATIONS", null);
+                pendingResult = null;
+                pendingCall = null;
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
